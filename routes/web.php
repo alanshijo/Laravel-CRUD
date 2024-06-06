@@ -14,27 +14,56 @@ use App\Http\Controllers\EmployeeController;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
+Route::group([
+    'controller' => AuthController::class
+], function(){
+    Route::group([
+        'prefix' => '/'
+    ], function(){
+        Route::get('login',  'login')->name('login');
+        Route::post('logout',  'logout')->name('logout');
+        Route::get('register',  'register')->name('register');
+    });
+    
+    Route::group([
+        'prefix' => '/users'
+    ], function(){
+        Route::post('create',  'create')->name('user.create');
+        Route::post('authenticate',  'authenticate')->name('authenticate');
+    });
+});
 
-Route::get('/login', [AuthController::class, 'login'])->name('login');
+Route::group([
+    'controller' => EmployeeController::class,
+], function(){
+    Route::get('/',  'index')->name('employee.listing');
+    Route::get('/employees/{employee}',  'view')->name('employee.view');
+    
+    Route::group([
+        'middleware' => ['auth']
+    ], function(){
 
-Route::post('/logout', [AuthController::class, 'logout']);
+        Route::group([
+            'prefix' => '/employee'
+        ], function(){
+            Route::get('create', 'create')->name('employee.create');
+            Route::post('/',  'store')->name('employee.store');
+        });
 
-Route::get('/register', [AuthController::class, 'register']);
+        Route::group([
+            'prefix' => '/employees'
+        ], function(){
+            Route::get('{employee}/edit',  'edit')->name('employee.edit');
+            Route::put('{employee}',  'update')->name('employee.update');
+            Route::delete('{employee}',  'destroy')->name('employee.destroy');
+    
+        });
+    });
+});
 
-Route::post('/users/create', [AuthController::class, 'create']);
 
-Route::post(('/users/authenticate'), [AuthController::class, 'authenticate']);
 
-Route::get('/', [EmployeeController::class, 'index'])->name('employee.listing');
 
-Route::get('/employee/create', [EmployeeController::class, 'create'])->middleware('auth');
 
-Route::post('/employee', [EmployeeController::class, 'store'])->middleware('auth');
 
-Route::get('/employees/{employee}', [EmployeeController::class, 'view']);
 
-Route::get('/employees/{employee}/edit', [EmployeeController::class, 'edit'])->middleware('auth');
-
-Route::put('employees/{employee}', [EmployeeController::class, 'update'])->middleware('auth');
-
-Route::delete('/employees/{employee}', [EmployeeController::class, 'destroy'])->middleware('auth');
